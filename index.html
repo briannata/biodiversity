@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Biodiversity Viz</title>
+  <!-- Load d3.js and the geo projection plugin -->
+  <script src="https://d3js.org/d3.v6.js"></script>
+  <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <!-- Google font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Roboto", sans-serif;
+    }
+    #vis.vega-embed {
+      width: 100%;
+      display: flex;
+    }
+
+    #vis.vega-embed details,
+    #vis.vega-embed details summary {
+      position: relative;
+    }
+</style>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+</head>
+<body>
+  <h1>Biodiversity Visualizations Dashboard</h1>
+  <!-- Add a slider -->
+  <p id="year">Year: 1950</p>
+  <input type="range" name="yearSlider" id=yearSlider min="1950" max="2020" value="1950">
+    <!-- Button -->
+  <div>
+    <input type="checkbox" class="checkbox" value="Actinopteri" checked><label>Actinopteri</label>
+    <input type="checkbox" class="checkbox" value="Amphibia" checked><label>Amphibia</label>
+    <input type="checkbox" class="checkbox" value="Aves" checked><label>Aves</label>
+    <input type="checkbox" class="checkbox" value="Dipneusti" checked><label>Dipneusti</label>
+    <input type="checkbox" class="checkbox" value="Elasmobranchii" checked><label>Elasmobranchii</label>
+    <input type="checkbox" class="checkbox" value="Holocephali" checked><label>Holocephali</label>
+    <input type="checkbox" class="checkbox" value="Mammalia" checked><label>Mammalia</label>
+    <input type="checkbox" class="checkbox" value="Myxini" checked><label>Myxini</label>
+    <input type="checkbox" class="checkbox" value="Petromyzonti" checked><label>Petromyzonti</label>
+    <input type="checkbox" class="checkbox" value="Repitalia" checked><label>Repitalia</label>
+  </div>
+  <svg id="worldmap" width="630" height="350"></svg>
+  <svg id="graph2" width="630" height="350"></svg>
+  <script>
+    // This is the default value
+    var selectedColumn = "1950";
+
+    d3.select("#yearSlider").on("change", function(d){
+      selectedColumn = this.value
+      document.getElementById('year').innerHTML = "Year: " + selectedColumn;
+      showData();
+    })
+
+    // The svg
+    var svg = d3.select("svg"),
+        width = +svg.attr("width"),
+        height = +svg.attr("height");
+    
+    // Map and projection
+    var projection = d3.geoMercator()
+        .center([0,20])                // GPS of location to zoom on
+        .scale(99)                       // This is like the zoom
+        .translate([ width/2, height/2 ])
+    
+    function showData() {
+      d3.json("world.geojson", function(d) {
+      return d
+    }).then(function(dataGeo) {
+      d3.csv("LPD2022_public.csv", function(d) {
+        return {
+          class: d["Class"],
+          common_name: d["Common_name"],
+          latitude: +d["Latitude"],
+          longitude: +d["Longitude"],
+          n: +d[selectedColumn]
+      }
+    }).then(function(data) {
+      console.log(data);
+      // Create a color scale
+      var allClasses = ['Actinopteri', 'Amphibia', 'Aves', 'Dipneusti', 'Elasmobranchii', 'Holocephali', 'Mammalia', 'Myxini', 'Petromyzonti', 'Repitalia']
+      const color = d3.scaleOrdinal()
+                .domain(allClasses)
+                .range(["#54478c","#2c699a","#048ba8","#0db39e","#16db93","#83e377","#b9e769","#efea5a","#f1c453","#f29e4c"])
+                //.range(["#f94144","#f3722c","#f8961e","#f9844a","#f9c74f","#90be6d","#43aa8b","#4d908e","#577590","#277da1"])
+                //.range(d3.schemeSet3)
+    
+      // Add a scale for bubble size
+      var valueExtent = d3.extent(data, function(d) { return +d.n; })
+      var size = d3.scaleSqrt()
+        .domain(valueExtent)  // What's in the data
+        .range([1, 50])  // Size in pixel
+    
+      // Draw the map
+      svg.append("g")
+          .selectAll("path")
+          .data(dataGeo.features)
+          .enter()
+          .append("path")
+            .attr("fill", "#b8b8b8")
+            .attr("d", d3.geoPath()
+                .projection(projection)
+            )
+          .style("stroke", "none")
+          .style("opacity", .3)
+    
+      // Add circles:
+      svg
+        .selectAll("myCircles")
+        .data(data.sort(function(a,b) { return +b.n - +a.n }).filter(function(d,i){ return i<1000 }))
+        .enter()
+        .append("circle")
+          .attr("cx", function(d){ return projection([+d.longitude, +d.latitude])[0] })
+          .attr("cy", function(d){ return projection([+d.longitude, +d.latitude])[1] })
+          .attr("r", function(d){ return size(+d.n) })
+          .style("fill", function(d) {
+                return color(d.class)
+            })
+          .attr("stroke", function(d){ if(d.n>1000000){return "black"}else{return "none"}  })
+          .attr("stroke-width", 1)
+          .attr("fill-opacity", .4)
+          .attr("class" , function(d){ return d.class})
+    
+      // Add title and explanation
+      svg
+        .append("text")
+          .attr("text-anchor", "end")
+          .style("fill", "black")
+          .attr("x", width - 10)
+          .attr("y", height - 30)
+          .attr("width", 90)
+          .html("ANIMAL POPULATIONS OVER TIME")
+          .style("font-size", 14)
+
+      // This function is gonna change the opacity and size of selected and unselected circles
+    function update(){
+
+    // For each check box:
+    d3.selectAll(".checkbox").each(function(d){
+      cb = d3.select(this);
+      grp = cb.property("value")
+
+      // If the box is check, I show the group
+      if(cb.property("checked")){
+        svg.selectAll("."+grp).transition().duration(1000).style("opacity", 1)//.attr("r", function(d){ return size(+d.n) })
+
+      // Otherwise I hide it
+      }else{
+        svg.selectAll("."+grp).transition().duration(1000).style("opacity", 0)//.attr("r", 0)
+      }
+    })
+    }
+
+    // When a button change, I run the update function
+    d3.selectAll(".checkbox").on("change",update);
+
+    // And I initialize it at the beginning
+    update()
+
+    })})
+    }
+
+    showData();
+    
+    </script>
+
+<div id="vis"></div>
+<script>
+
+    
+(function(vegaEmbed) {
+  var spec = {"$schema": "https://vega.github.io/schema/vega/v5.json", "data": [{"name": "param_2_store"}, {"name": "source_0", "values": [{"data": 258, "label": "Populations", "years": "1950-01-01T00:00:00.000"}, {"data": 240, "label": "Populations", "years": "1951-01-01T00:00:00.000"}, {"data": 281, "label": "Populations", "years": "1952-01-01T00:00:00.000"}, {"data": 277, "label": "Populations", "years": "1953-01-01T00:00:00.000"}, {"data": 294, "label": "Populations", "years": "1954-01-01T00:00:00.000"}, {"data": 316, "label": "Populations", "years": "1955-01-01T00:00:00.000"}, {"data": 365, "label": "Populations", "years": "1956-01-01T00:00:00.000"}, {"data": 334, "label": "Populations", "years": "1957-01-01T00:00:00.000"}, {"data": 380, "label": "Populations", "years": "1958-01-01T00:00:00.000"}, {"data": 425, "label": "Populations", "years": "1959-01-01T00:00:00.000"}, {"data": 598, "label": "Populations", "years": "1960-01-01T00:00:00.000"}, {"data": 648, "label": "Populations", "years": "1961-01-01T00:00:00.000"}, {"data": 660, "label": "Populations", "years": "1962-01-01T00:00:00.000"}, {"data": 689, "label": "Populations", "years": "1963-01-01T00:00:00.000"}, {"data": 748, "label": "Populations", "years": "1964-01-01T00:00:00.000"}, {"data": 857, "label": "Populations", "years": "1965-01-01T00:00:00.000"}, {"data": 872, "label": "Populations", "years": "1966-01-01T00:00:00.000"}, {"data": 1036, "label": "Populations", "years": "1967-01-01T00:00:00.000"}, {"data": 1066, "label": "Populations", "years": "1968-01-01T00:00:00.000"}, {"data": 1116, "label": "Populations", "years": "1969-01-01T00:00:00.000"}, {"data": 3457, "label": "Populations", "years": "1970-01-01T00:00:00.000"}, {"data": 3332, "label": "Populations", "years": "1971-01-01T00:00:00.000"}, {"data": 3494, "label": "Populations", "years": "1972-01-01T00:00:00.000"}, {"data": 3890, "label": "Populations", "years": "1973-01-01T00:00:00.000"}, {"data": 4180, "label": "Populations", "years": "1974-01-01T00:00:00.000"}, {"data": 4471, "label": "Populations", "years": "1975-01-01T00:00:00.000"}, {"data": 4449, "label": "Populations", "years": "1976-01-01T00:00:00.000"}, {"data": 4740, "label": "Populations", "years": "1977-01-01T00:00:00.000"}, {"data": 4985, "label": "Populations", "years": "1978-01-01T00:00:00.000"}, {"data": 5125, "label": "Populations", "years": "1979-01-01T00:00:00.000"}, {"data": 5529, "label": "Populations", "years": "1980-01-01T00:00:00.000"}, {"data": 5937, "label": "Populations", "years": "1981-01-01T00:00:00.000"}, {"data": 6014, "label": "Populations", "years": "1982-01-01T00:00:00.000"}, {"data": 6385, "label": "Populations", "years": "1983-01-01T00:00:00.000"}, {"data": 6748, "label": "Populations", "years": "1984-01-01T00:00:00.000"}, {"data": 6964, "label": "Populations", "years": "1985-01-01T00:00:00.000"}, {"data": 6959, "label": "Populations", "years": "1986-01-01T00:00:00.000"}, {"data": 7434, "label": "Populations", "years": "1987-01-01T00:00:00.000"}, {"data": 7298, "label": "Populations", "years": "1988-01-01T00:00:00.000"}, {"data": 7509, "label": "Populations", "years": "1989-01-01T00:00:00.000"}, {"data": 8114, "label": "Populations", "years": "1990-01-01T00:00:00.000"}, {"data": 8201, "label": "Populations", "years": "1991-01-01T00:00:00.000"}, {"data": 9109, "label": "Populations", "years": "1992-01-01T00:00:00.000"}, {"data": 9551, "label": "Populations", "years": "1993-01-01T00:00:00.000"}, {"data": 9682, "label": "Populations", "years": "1994-01-01T00:00:00.000"}, {"data": 10151, "label": "Populations", "years": "1995-01-01T00:00:00.000"}, {"data": 9600, "label": "Populations", "years": "1996-01-01T00:00:00.000"}, {"data": 10598, "label": "Populations", "years": "1997-01-01T00:00:00.000"}, {"data": 10540, "label": "Populations", "years": "1998-01-01T00:00:00.000"}, {"data": 10163, "label": "Populations", "years": "1999-01-01T00:00:00.000"}, {"data": 10868, "label": "Populations", "years": "2000-01-01T00:00:00.000"}, {"data": 10450, "label": "Populations", "years": "2001-01-01T00:00:00.000"}, {"data": 10650, "label": "Populations", "years": "2002-01-01T00:00:00.000"}, {"data": 10358, "label": "Populations", "years": "2003-01-01T00:00:00.000"}, {"data": 10286, "label": "Populations", "years": "2004-01-01T00:00:00.000"}, {"data": 10553, "label": "Populations", "years": "2005-01-01T00:00:00.000"}, {"data": 9867, "label": "Populations", "years": "2006-01-01T00:00:00.000"}, {"data": 9569, "label": "Populations", "years": "2007-01-01T00:00:00.000"}, {"data": 9810, "label": "Populations", "years": "2008-01-01T00:00:00.000"}, {"data": 9895, "label": "Populations", "years": "2009-01-01T00:00:00.000"}, {"data": 11106, "label": "Populations", "years": "2010-01-01T00:00:00.000"}, {"data": 11564, "label": "Populations", "years": "2011-01-01T00:00:00.000"}, {"data": 10749, "label": "Populations", "years": "2012-01-01T00:00:00.000"}, {"data": 9776, "label": "Populations", "years": "2013-01-01T00:00:00.000"}, {"data": 9822, "label": "Populations", "years": "2014-01-01T00:00:00.000"}, {"data": 7008, "label": "Populations", "years": "2015-01-01T00:00:00.000"}, {"data": 6518, "label": "Populations", "years": "2016-01-01T00:00:00.000"}, {"data": 5400, "label": "Populations", "years": "2017-01-01T00:00:00.000"}, {"data": 2428, "label": "Populations", "years": "2018-01-01T00:00:00.000"}, {"data": 2159, "label": "Populations", "years": "2019-01-01T00:00:00.000"}, {"data": 1139, "label": "Populations", "years": "2020-01-01T00:00:00.000"}, {"data": 166, "label": "Species", "years": "1950-01-01T00:00:00.000"}, {"data": 149, "label": "Species", "years": "1951-01-01T00:00:00.000"}, {"data": 169, "label": "Species", "years": "1952-01-01T00:00:00.000"}, {"data": 171, "label": "Species", "years": "1953-01-01T00:00:00.000"}, {"data": 181, "label": "Species", "years": "1954-01-01T00:00:00.000"}, {"data": 192, "label": "Species", "years": "1955-01-01T00:00:00.000"}, {"data": 216, "label": "Species", "years": "1956-01-01T00:00:00.000"}, {"data": 191, "label": "Species", "years": "1957-01-01T00:00:00.000"}, {"data": 227, "label": "Species", "years": "1958-01-01T00:00:00.000"}, {"data": 255, "label": "Species", "years": "1959-01-01T00:00:00.000"}, {"data": 314, "label": "Species", "years": "1960-01-01T00:00:00.000"}, {"data": 320, "label": "Species", "years": "1961-01-01T00:00:00.000"}, {"data": 347, "label": "Species", "years": "1962-01-01T00:00:00.000"}, {"data": 359, "label": "Species", "years": "1963-01-01T00:00:00.000"}, {"data": 366, "label": "Species", "years": "1964-01-01T00:00:00.000"}, {"data": 412, "label": "Species", "years": "1965-01-01T00:00:00.000"}, {"data": 417, "label": "Species", "years": "1966-01-01T00:00:00.000"}, {"data": 503, "label": "Species", "years": "1967-01-01T00:00:00.000"}, {"data": 490, "label": "Species", "years": "1968-01-01T00:00:00.000"}, {"data": 519, "label": "Species", "years": "1969-01-01T00:00:00.000"}, {"data": 899, "label": "Species", "years": "1970-01-01T00:00:00.000"}, {"data": 879, "label": "Species", "years": "1971-01-01T00:00:00.000"}, {"data": 902, "label": "Species", "years": "1972-01-01T00:00:00.000"}, {"data": 959, "label": "Species", "years": "1973-01-01T00:00:00.000"}, {"data": 1029, "label": "Species", "years": "1974-01-01T00:00:00.000"}, {"data": 1091, "label": "Species", "years": "1975-01-01T00:00:00.000"}, {"data": 1117, "label": "Species", "years": "1976-01-01T00:00:00.000"}, {"data": 1145, "label": "Species", "years": "1977-01-01T00:00:00.000"}, {"data": 1197, "label": "Species", "years": "1978-01-01T00:00:00.000"}, {"data": 1243, "label": "Species", "years": "1979-01-01T00:00:00.000"}, {"data": 1306, "label": "Species", "years": "1980-01-01T00:00:00.000"}, {"data": 1311, "label": "Species", "years": "1981-01-01T00:00:00.000"}, {"data": 1346, "label": "Species", "years": "1982-01-01T00:00:00.000"}, {"data": 1379, "label": "Species", "years": "1983-01-01T00:00:00.000"}, {"data": 1415, "label": "Species", "years": "1984-01-01T00:00:00.000"}, {"data": 1471, "label": "Species", "years": "1985-01-01T00:00:00.000"}, {"data": 1488, "label": "Species", "years": "1986-01-01T00:00:00.000"}, {"data": 1678, "label": "Species", "years": "1987-01-01T00:00:00.000"}, {"data": 1534, "label": "Species", "years": "1988-01-01T00:00:00.000"}, {"data": 1603, "label": "Species", "years": "1989-01-01T00:00:00.000"}, {"data": 1625, "label": "Species", "years": "1990-01-01T00:00:00.000"}, {"data": 1725, "label": "Species", "years": "1991-01-01T00:00:00.000"}, {"data": 2012, "label": "Species", "years": "1992-01-01T00:00:00.000"}, {"data": 1832, "label": "Species", "years": "1993-01-01T00:00:00.000"}, {"data": 1867, "label": "Species", "years": "1994-01-01T00:00:00.000"}, {"data": 1983, "label": "Species", "years": "1995-01-01T00:00:00.000"}, {"data": 1931, "label": "Species", "years": "1996-01-01T00:00:00.000"}, {"data": 2208, "label": "Species", "years": "1997-01-01T00:00:00.000"}, {"data": 2128, "label": "Species", "years": "1998-01-01T00:00:00.000"}, {"data": 2037, "label": "Species", "years": "1999-01-01T00:00:00.000"}, {"data": 2255, "label": "Species", "years": "2000-01-01T00:00:00.000"}, {"data": 2227, "label": "Species", "years": "2001-01-01T00:00:00.000"}, {"data": 2161, "label": "Species", "years": "2002-01-01T00:00:00.000"}, {"data": 2186, "label": "Species", "years": "2003-01-01T00:00:00.000"}, {"data": 2217, "label": "Species", "years": "2004-01-01T00:00:00.000"}, {"data": 2297, "label": "Species", "years": "2005-01-01T00:00:00.000"}, {"data": 2010, "label": "Species", "years": "2006-01-01T00:00:00.000"}, {"data": 1930, "label": "Species", "years": "2007-01-01T00:00:00.000"}, {"data": 1873, "label": "Species", "years": "2008-01-01T00:00:00.000"}, {"data": 1844, "label": "Species", "years": "2009-01-01T00:00:00.000"}, {"data": 2021, "label": "Species", "years": "2010-01-01T00:00:00.000"}, {"data": 1972, "label": "Species", "years": "2011-01-01T00:00:00.000"}, {"data": 1874, "label": "Species", "years": "2012-01-01T00:00:00.000"}, {"data": 1592, "label": "Species", "years": "2013-01-01T00:00:00.000"}, {"data": 1503, "label": "Species", "years": "2014-01-01T00:00:00.000"}, {"data": 1143, "label": "Species", "years": "2015-01-01T00:00:00.000"}, {"data": 1069, "label": "Species", "years": "2016-01-01T00:00:00.000"}, {"data": 721, "label": "Species", "years": "2017-01-01T00:00:00.000"}, {"data": 597, "label": "Species", "years": "2018-01-01T00:00:00.000"}, {"data": 499, "label": "Species", "years": "2019-01-01T00:00:00.000"}, {"data": 280, "label": "Species", "years": "2020-01-01T00:00:00.000"}], "transform": [{"type": "formula", "expr": "toDate(datum['years'])", "as": "years"}]}, {"name": "data_0", "values": [{"data": 258, "label": "Populations", "years": "1950-01-01T00:00:00.000"}, {"data": 240, "label": "Populations", "years": "1951-01-01T00:00:00.000"}, {"data": 281, "label": "Populations", "years": "1952-01-01T00:00:00.000"}, {"data": 277, "label": "Populations", "years": "1953-01-01T00:00:00.000"}, {"data": 294, "label": "Populations", "years": "1954-01-01T00:00:00.000"}, {"data": 316, "label": "Populations", "years": "1955-01-01T00:00:00.000"}, {"data": 365, "label": "Populations", "years": "1956-01-01T00:00:00.000"}, {"data": 334, "label": "Populations", "years": "1957-01-01T00:00:00.000"}, {"data": 380, "label": "Populations", "years": "1958-01-01T00:00:00.000"}, {"data": 425, "label": "Populations", "years": "1959-01-01T00:00:00.000"}, {"data": 598, "label": "Populations", "years": "1960-01-01T00:00:00.000"}, {"data": 648, "label": "Populations", "years": "1961-01-01T00:00:00.000"}, {"data": 660, "label": "Populations", "years": "1962-01-01T00:00:00.000"}, {"data": 689, "label": "Populations", "years": "1963-01-01T00:00:00.000"}, {"data": 748, "label": "Populations", "years": "1964-01-01T00:00:00.000"}, {"data": 857, "label": "Populations", "years": "1965-01-01T00:00:00.000"}, {"data": 872, "label": "Populations", "years": "1966-01-01T00:00:00.000"}, {"data": 1036, "label": "Populations", "years": "1967-01-01T00:00:00.000"}, {"data": 1066, "label": "Populations", "years": "1968-01-01T00:00:00.000"}, {"data": 1116, "label": "Populations", "years": "1969-01-01T00:00:00.000"}, {"data": 3457, "label": "Populations", "years": "1970-01-01T00:00:00.000"}, {"data": 3332, "label": "Populations", "years": "1971-01-01T00:00:00.000"}, {"data": 3494, "label": "Populations", "years": "1972-01-01T00:00:00.000"}, {"data": 3890, "label": "Populations", "years": "1973-01-01T00:00:00.000"}, {"data": 4180, "label": "Populations", "years": "1974-01-01T00:00:00.000"}, {"data": 4471, "label": "Populations", "years": "1975-01-01T00:00:00.000"}, {"data": 4449, "label": "Populations", "years": "1976-01-01T00:00:00.000"}, {"data": 4740, "label": "Populations", "years": "1977-01-01T00:00:00.000"}, {"data": 4985, "label": "Populations", "years": "1978-01-01T00:00:00.000"}, {"data": 5125, "label": "Populations", "years": "1979-01-01T00:00:00.000"}, {"data": 5529, "label": "Populations", "years": "1980-01-01T00:00:00.000"}, {"data": 5937, "label": "Populations", "years": "1981-01-01T00:00:00.000"}, {"data": 6014, "label": "Populations", "years": "1982-01-01T00:00:00.000"}, {"data": 6385, "label": "Populations", "years": "1983-01-01T00:00:00.000"}, {"data": 6748, "label": "Populations", "years": "1984-01-01T00:00:00.000"}, {"data": 6964, "label": "Populations", "years": "1985-01-01T00:00:00.000"}, {"data": 6959, "label": "Populations", "years": "1986-01-01T00:00:00.000"}, {"data": 7434, "label": "Populations", "years": "1987-01-01T00:00:00.000"}, {"data": 7298, "label": "Populations", "years": "1988-01-01T00:00:00.000"}, {"data": 7509, "label": "Populations", "years": "1989-01-01T00:00:00.000"}, {"data": 8114, "label": "Populations", "years": "1990-01-01T00:00:00.000"}, {"data": 8201, "label": "Populations", "years": "1991-01-01T00:00:00.000"}, {"data": 9109, "label": "Populations", "years": "1992-01-01T00:00:00.000"}, {"data": 9551, "label": "Populations", "years": "1993-01-01T00:00:00.000"}, {"data": 9682, "label": "Populations", "years": "1994-01-01T00:00:00.000"}, {"data": 10151, "label": "Populations", "years": "1995-01-01T00:00:00.000"}, {"data": 9600, "label": "Populations", "years": "1996-01-01T00:00:00.000"}, {"data": 10598, "label": "Populations", "years": "1997-01-01T00:00:00.000"}, {"data": 10540, "label": "Populations", "years": "1998-01-01T00:00:00.000"}, {"data": 10163, "label": "Populations", "years": "1999-01-01T00:00:00.000"}, {"data": 10868, "label": "Populations", "years": "2000-01-01T00:00:00.000"}, {"data": 10450, "label": "Populations", "years": "2001-01-01T00:00:00.000"}, {"data": 10650, "label": "Populations", "years": "2002-01-01T00:00:00.000"}, {"data": 10358, "label": "Populations", "years": "2003-01-01T00:00:00.000"}, {"data": 10286, "label": "Populations", "years": "2004-01-01T00:00:00.000"}, {"data": 10553, "label": "Populations", "years": "2005-01-01T00:00:00.000"}, {"data": 9867, "label": "Populations", "years": "2006-01-01T00:00:00.000"}, {"data": 9569, "label": "Populations", "years": "2007-01-01T00:00:00.000"}, {"data": 9810, "label": "Populations", "years": "2008-01-01T00:00:00.000"}, {"data": 9895, "label": "Populations", "years": "2009-01-01T00:00:00.000"}, {"data": 11106, "label": "Populations", "years": "2010-01-01T00:00:00.000"}, {"data": 11564, "label": "Populations", "years": "2011-01-01T00:00:00.000"}, {"data": 10749, "label": "Populations", "years": "2012-01-01T00:00:00.000"}, {"data": 9776, "label": "Populations", "years": "2013-01-01T00:00:00.000"}, {"data": 9822, "label": "Populations", "years": "2014-01-01T00:00:00.000"}, {"data": 7008, "label": "Populations", "years": "2015-01-01T00:00:00.000"}, {"data": 6518, "label": "Populations", "years": "2016-01-01T00:00:00.000"}, {"data": 5400, "label": "Populations", "years": "2017-01-01T00:00:00.000"}, {"data": 2428, "label": "Populations", "years": "2018-01-01T00:00:00.000"}, {"data": 2159, "label": "Populations", "years": "2019-01-01T00:00:00.000"}, {"data": 1139, "label": "Populations", "years": "2020-01-01T00:00:00.000"}, {"data": 166, "label": "Species", "years": "1950-01-01T00:00:00.000"}, {"data": 149, "label": "Species", "years": "1951-01-01T00:00:00.000"}, {"data": 169, "label": "Species", "years": "1952-01-01T00:00:00.000"}, {"data": 171, "label": "Species", "years": "1953-01-01T00:00:00.000"}, {"data": 181, "label": "Species", "years": "1954-01-01T00:00:00.000"}, {"data": 192, "label": "Species", "years": "1955-01-01T00:00:00.000"}, {"data": 216, "label": "Species", "years": "1956-01-01T00:00:00.000"}, {"data": 191, "label": "Species", "years": "1957-01-01T00:00:00.000"}, {"data": 227, "label": "Species", "years": "1958-01-01T00:00:00.000"}, {"data": 255, "label": "Species", "years": "1959-01-01T00:00:00.000"}, {"data": 314, "label": "Species", "years": "1960-01-01T00:00:00.000"}, {"data": 320, "label": "Species", "years": "1961-01-01T00:00:00.000"}, {"data": 347, "label": "Species", "years": "1962-01-01T00:00:00.000"}, {"data": 359, "label": "Species", "years": "1963-01-01T00:00:00.000"}, {"data": 366, "label": "Species", "years": "1964-01-01T00:00:00.000"}, {"data": 412, "label": "Species", "years": "1965-01-01T00:00:00.000"}, {"data": 417, "label": "Species", "years": "1966-01-01T00:00:00.000"}, {"data": 503, "label": "Species", "years": "1967-01-01T00:00:00.000"}, {"data": 490, "label": "Species", "years": "1968-01-01T00:00:00.000"}, {"data": 519, "label": "Species", "years": "1969-01-01T00:00:00.000"}, {"data": 899, "label": "Species", "years": "1970-01-01T00:00:00.000"}, {"data": 879, "label": "Species", "years": "1971-01-01T00:00:00.000"}, {"data": 902, "label": "Species", "years": "1972-01-01T00:00:00.000"}, {"data": 959, "label": "Species", "years": "1973-01-01T00:00:00.000"}, {"data": 1029, "label": "Species", "years": "1974-01-01T00:00:00.000"}, {"data": 1091, "label": "Species", "years": "1975-01-01T00:00:00.000"}, {"data": 1117, "label": "Species", "years": "1976-01-01T00:00:00.000"}, {"data": 1145, "label": "Species", "years": "1977-01-01T00:00:00.000"}, {"data": 1197, "label": "Species", "years": "1978-01-01T00:00:00.000"}, {"data": 1243, "label": "Species", "years": "1979-01-01T00:00:00.000"}, {"data": 1306, "label": "Species", "years": "1980-01-01T00:00:00.000"}, {"data": 1311, "label": "Species", "years": "1981-01-01T00:00:00.000"}, {"data": 1346, "label": "Species", "years": "1982-01-01T00:00:00.000"}, {"data": 1379, "label": "Species", "years": "1983-01-01T00:00:00.000"}, {"data": 1415, "label": "Species", "years": "1984-01-01T00:00:00.000"}, {"data": 1471, "label": "Species", "years": "1985-01-01T00:00:00.000"}, {"data": 1488, "label": "Species", "years": "1986-01-01T00:00:00.000"}, {"data": 1678, "label": "Species", "years": "1987-01-01T00:00:00.000"}, {"data": 1534, "label": "Species", "years": "1988-01-01T00:00:00.000"}, {"data": 1603, "label": "Species", "years": "1989-01-01T00:00:00.000"}, {"data": 1625, "label": "Species", "years": "1990-01-01T00:00:00.000"}, {"data": 1725, "label": "Species", "years": "1991-01-01T00:00:00.000"}, {"data": 2012, "label": "Species", "years": "1992-01-01T00:00:00.000"}, {"data": 1832, "label": "Species", "years": "1993-01-01T00:00:00.000"}, {"data": 1867, "label": "Species", "years": "1994-01-01T00:00:00.000"}, {"data": 1983, "label": "Species", "years": "1995-01-01T00:00:00.000"}, {"data": 1931, "label": "Species", "years": "1996-01-01T00:00:00.000"}, {"data": 2208, "label": "Species", "years": "1997-01-01T00:00:00.000"}, {"data": 2128, "label": "Species", "years": "1998-01-01T00:00:00.000"}, {"data": 2037, "label": "Species", "years": "1999-01-01T00:00:00.000"}, {"data": 2255, "label": "Species", "years": "2000-01-01T00:00:00.000"}, {"data": 2227, "label": "Species", "years": "2001-01-01T00:00:00.000"}, {"data": 2161, "label": "Species", "years": "2002-01-01T00:00:00.000"}, {"data": 2186, "label": "Species", "years": "2003-01-01T00:00:00.000"}, {"data": 2217, "label": "Species", "years": "2004-01-01T00:00:00.000"}, {"data": 2297, "label": "Species", "years": "2005-01-01T00:00:00.000"}, {"data": 2010, "label": "Species", "years": "2006-01-01T00:00:00.000"}, {"data": 1930, "label": "Species", "years": "2007-01-01T00:00:00.000"}, {"data": 1873, "label": "Species", "years": "2008-01-01T00:00:00.000"}, {"data": 1844, "label": "Species", "years": "2009-01-01T00:00:00.000"}, {"data": 2021, "label": "Species", "years": "2010-01-01T00:00:00.000"}, {"data": 1972, "label": "Species", "years": "2011-01-01T00:00:00.000"}, {"data": 1874, "label": "Species", "years": "2012-01-01T00:00:00.000"}, {"data": 1592, "label": "Species", "years": "2013-01-01T00:00:00.000"}, {"data": 1503, "label": "Species", "years": "2014-01-01T00:00:00.000"}, {"data": 1143, "label": "Species", "years": "2015-01-01T00:00:00.000"}, {"data": 1069, "label": "Species", "years": "2016-01-01T00:00:00.000"}, {"data": 721, "label": "Species", "years": "2017-01-01T00:00:00.000"}, {"data": 597, "label": "Species", "years": "2018-01-01T00:00:00.000"}, {"data": 499, "label": "Species", "years": "2019-01-01T00:00:00.000"}, {"data": 280, "label": "Species", "years": "2020-01-01T00:00:00.000"}], "transform": [{"type": "formula", "expr": "toDate(datum['years'])", "as": "years"}]}, {"name": "source_0_color_domain_label_0", "values": [{"label": "Populations"}, {"label": "Species"}]}, {"name": "data_0_color_domain_label_1", "values": [{"label": "Populations"}, {"label": "Species"}]}], "signals": [{"name": "unit", "value": {}, "on": [{"events": "pointermove", "update": "isTuple(group()) ? group() : unit"}]}, {"name": "param_2", "update": "vlSelectionResolve(\"param_2_store\", \"union\")"}, {"name": "param_2_years", "on": [{"events": [{"source": "view", "type": "dblclick"}], "update": "null"}, {"events": {"signal": "param_2_translate_delta"}, "update": "panLinear(param_2_translate_anchor.extent_x, -param_2_translate_delta.x / width)"}, {"events": {"signal": "param_2_zoom_delta"}, "update": "zoomLinear(domain(\"x\"), param_2_zoom_anchor.x, param_2_zoom_delta)"}]}, {"name": "param_2_data", "on": [{"events": [{"source": "view", "type": "dblclick"}], "update": "null"}, {"events": {"signal": "param_2_translate_delta"}, "update": "panLinear(param_2_translate_anchor.extent_y, param_2_translate_delta.y / height)"}, {"events": {"signal": "param_2_zoom_delta"}, "update": "zoomLinear(domain(\"y\"), param_2_zoom_anchor.y, param_2_zoom_delta)"}]}, {"name": "param_2_tuple", "on": [{"events": [{"signal": "param_2_years || param_2_data"}], "update": "param_2_years && param_2_data ? {unit: \"layer_0\", fields: param_2_tuple_fields, values: [param_2_years,param_2_data]} : null"}]}, {"name": "param_2_tuple_fields", "value": [{"field": "years", "channel": "x", "type": "R"}, {"field": "data", "channel": "y", "type": "R"}]}, {"name": "param_2_translate_anchor", "value": {}, "on": [{"events": [{"source": "scope", "type": "pointerdown"}], "update": "{x: x(unit), y: y(unit), extent_x: domain(\"x\"), extent_y: domain(\"y\")}"}]}, {"name": "param_2_translate_delta", "value": {}, "on": [{"events": [{"source": "window", "between": [{"source": "scope", "type": "pointerdown"}, {"source": "window", "type": "pointerup"}], "consume": true, "type": "pointermove"}], "update": "{x: param_2_translate_anchor.x - x(unit), y: param_2_translate_anchor.y - y(unit)}"}]}, {"name": "param_2_zoom_anchor", "on": [{"events": [{"source": "scope", "consume": true, "type": "wheel"}], "update": "{x: invert(\"x\", x(unit)), y: invert(\"y\", y(unit))}"}]}, {"name": "param_2_zoom_delta", "on": [{"events": [{"source": "scope", "type": "wheel", "consume": true}], "update": "pow(1.001, event.deltaY * pow(16, event.deltaMode))", "force": true}]}, {"name": "param_2_modify", "on": [{"events": {"signal": "param_2_tuple"}, "update": "modify(\"param_2_store\", param_2_tuple, true)"}]}], "marks": [{"type": "group", "name": "layer_0_pathgroup", "from": {"facet": {"data": "source_0", "name": "faceted_path_layer_0_main", "groupby": ["label"]}}, "encode": {"update": {"width": {"field": {"signal": null, "datum": null, "group": "width", "parent": null}}, "height": {"field": {"signal": null, "datum": null, "group": "height", "parent": null}}}}, "marks": [{"type": "line", "name": "layer_0_marks", "from": {"data": "faceted_path_layer_0_main"}, "sort": {"field": "datum[\"years\"]"}, "encode": {"update": {"tooltip": {"signal": "{\"years\": timeFormat(datum[\"years\"], '%b %d, %Y'), \"data\": format(datum[\"data\"], \"\")}"}, "defined": {"signal": "isValid(datum[\"years\"]) && isFinite(+datum[\"years\"]) && isValid(datum[\"data\"]) && isFinite(+datum[\"data\"])"}, "stroke": {"field": "label", "scale": "color"}, "x": {"field": "years", "scale": "x"}, "y": {"field": "data", "scale": "y"}}}, "interactive": true, "style": ["line"], "clip": true}]}, {"type": "symbol", "name": "layer_1_marks", "from": {"data": "data_0"}, "encode": {"update": {"x": {"field": "years", "scale": "x"}, "fill": {"field": "label", "scale": "color"}, "tooltip": {"signal": "{\"years\": timeFormat(datum[\"years\"], '%b %d, %Y'), \"data\": format(datum[\"data\"], \"\")}"}, "opacity": {"value": 1}, "y": {"field": "data", "scale": "y"}}}, "clip": true, "style": ["point"], "interactive": true}], "scales": [{"name": "x", "type": "time", "domain": {"fields": [{"data": "source_0", "field": "years"}, {"data": "data_0", "field": "years"}]}, "range": [0, {"signal": "width"}], "domainRaw": {"signal": "param_2[\"years\"]"}}, {"name": "y", "type": "linear", "domain": {"fields": [{"data": "source_0", "field": "data"}, {"data": "data_0", "field": "data"}]}, "range": [{"signal": "height"}, 0], "zero": true, "nice": true, "domainRaw": {"signal": "param_2[\"data\"]"}}, {"name": "color", "type": "ordinal", "domain": {"fields": [{"data": "source_0_color_domain_label_0", "field": "label"}, {"data": "data_0_color_domain_label_1", "field": "label"}], "sort": true}, "range": "category"}], "axes": [{"scale": "x", "tickCount": {"signal": "ceil(width/40)"}, "zindex": 0, "minExtent": 0, "ticks": false, "maxExtent": 0, "gridScale": "y", "orient": "bottom", "grid": true, "domain": false, "labels": false, "aria": false}, {"scale": "y", "aria": false, "ticks": false, "tickCount": {"signal": "ceil(height/40)"}, "grid": true, "gridScale": "x", "domain": false, "labels": false, "maxExtent": 0, "minExtent": 0, "zindex": 0, "orient": "left"}, {"scale": "x", "orient": "bottom", "grid": false, "title": "years", "labelFlush": true, "tickCount": {"signal": "ceil(width/40)"}, "zindex": 0, "labelOverlap": true}, {"scale": "y", "orient": "left", "grid": false, "title": "number", "labelOverlap": true, "tickCount": {"signal": "ceil(height/40)"}, "zindex": 0}], "height": 300, "padding": 5, "width": 300, "style": "cell", "legends": [{"stroke": "color", "symbolType": "circle", "title": "label", "fill": "color", "encode": {"symbols": {"update": {"opacity": {"value": 1}}}}}], "background": "white"};
+  var embedOpt = {"mode": "vega"};
+
+  function showError(el, error){
+      el.innerHTML = ('<div style="color:red;">'
+                      + '<p>JavaScript Error: ' + error.message + '</p>'
+                      + "<p>This usually means there's a typo in your chart specification. "
+                      + "See the javascript console for the full traceback.</p>"
+                      + '</div>');
+      throw error;
+  }
+  const el = document.getElementById('vis');
+  vegaEmbed("#vis", spec, embedOpt)
+    .catch(error => showError(el, error));
+})(vegaEmbed);
+
+</script>
+</body>
+</html>
