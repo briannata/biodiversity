@@ -110,6 +110,8 @@
         .domain(valueExtent)  // What's in the data
         .range([1, 50])  // Size in pixel
     
+
+      svg.selectAll("circle").remove();
       // Add circles:
       svg
         .selectAll("myCircles")
@@ -126,10 +128,11 @@
           .attr("stroke-width", 1)
           .attr("fill-opacity", .4)
           .attr("class" , function(d){ return d.class})
+        .exit()
     })}
 
-     // This function is gonna change the opacity and size of selected and unselected circles
-     function update(){
+  // This function is gonna change the opacity and size of selected and unselected circles
+  function update(){
 
   // For each check box:
   d3.selectAll(".checkbox").each(function(d){
@@ -153,7 +156,7 @@
   // And I initialize it at the beginning
   update()
 
-    showData();
+  showData();
     
     </script>
 
