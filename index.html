@@ -17,13 +17,13 @@
     body {
       font-family: "Roboto", sans-serif;
     }
-    #vis.vega-embed {
+    #graph5.vega-embed {
       width: 100%;
       display: flex;
     }
 
-    #vis.vega-embed details,
-    #vis.vega-embed details summary {
+    #graph5.vega-embed details,
+    #graph5.vega-embed details summary {
       position: relative;
     }
 </style>
@@ -173,7 +173,7 @@
     
     </script>
 
-<div id="vis"></div>
+<div id="graph5"></div>
 <script>
 
     
@@ -189,8 +189,8 @@
                       + '</div>');
       throw error;
   }
-  const el = document.getElementById('vis');
-  vegaEmbed("#vis", spec, embedOpt)
+  const el = document.getElementById('graph5');
+  vegaEmbed("#graph5", spec, embedOpt)
     .catch(error => showError(el, error));
 })(vegaEmbed);
 
