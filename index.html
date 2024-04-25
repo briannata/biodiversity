@@ -13,23 +13,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: "Roboto", sans-serif;
-    }
-    #graph5.vega-embed {
-      width: 100%;
-      display: flex;
-    }
-
-    #graph5.vega-embed details,
-    #graph5.vega-embed details summary {
-      position: relative;
-    }
-</style>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-
+  <link rel="stylesheet" href="styles.css">
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 </head>
 <body>
   <h1>Biodiversity Visualizations Dashboard</h1>
@@ -38,16 +24,16 @@
   <input type="range" name="yearSlider" id=yearSlider min="1950" max="2020" value="1950">
     <!-- Button -->
   <div>
-    <input type="checkbox" class="checkbox" value="Actinopteri" checked><label>Actinopteri</label>
-    <input type="checkbox" class="checkbox" value="Amphibia" checked><label>Amphibia</label>
-    <input type="checkbox" class="checkbox" value="Aves" checked><label>Aves</label>
-    <input type="checkbox" class="checkbox" value="Dipneusti" checked><label>Dipneusti</label>
-    <input type="checkbox" class="checkbox" value="Elasmobranchii" checked><label>Elasmobranchii</label>
-    <input type="checkbox" class="checkbox" value="Holocephali" checked><label>Holocephali</label>
-    <input type="checkbox" class="checkbox" value="Mammalia" checked><label>Mammalia</label>
-    <input type="checkbox" class="checkbox" value="Myxini" checked><label>Myxini</label>
-    <input type="checkbox" class="checkbox" value="Petromyzonti" checked><label>Petromyzonti</label>
-    <input type="checkbox" class="checkbox" value="Repitalia" checked><label>Repitalia</label>
+    <input type="checkbox" id="act" class="checkbox" value="Actinopteri" checked><label>Actinopteri</label>
+    <input type="checkbox" id="amp" class="checkbox" value="Amphibia" checked><label>Amphibia</label>
+    <input type="checkbox" id="aves" class="checkbox" value="Aves" checked><label>Aves</label>
+    <input type="checkbox" id="dip" class="checkbox" value="Dipneusti" checked><label>Dipneusti</label>
+    <input type="checkbox" id="ela" class="checkbox" value="Elasmobranchii" checked><label>Elasmobranchii</label>
+    <input type="checkbox" id="holo" class="checkbox" value="Holocephali" checked><label>Holocephali</label>
+    <input type="checkbox" id="mam" class="checkbox" value="Mammalia" checked><label>Mammalia</label>
+    <input type="checkbox" id="myx" class="checkbox" value="Myxini" checked><label>Myxini</label>
+    <input type="checkbox" id="pet" class="checkbox" value="Petromyzonti" checked><label>Petromyzonti</label>
+    <input type="checkbox" id="rep" class="checkbox" value="Repitalia" checked><label>Repitalia</label>
   </div>
   <svg id="worldmap" width="630" height="350"></svg>
   <svg id="graph2" width="630" height="350"></svg>

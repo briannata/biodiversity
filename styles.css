@@ -1,0 +1,52 @@
+body {
+    font-family: "Roboto", sans-serif;
+  }
+  #graph5.vega-embed {
+    width: 100%;
+    display: flex;
+  }
+
+  #graph5.vega-embed details,
+  #graph5.vega-embed details summary {
+    position: relative;
+  }
+
+  #act {
+    accent-color: #54478c;
+  }
+
+  #amp {
+    accent-color: #2c699a;
+  }
+
+  #aves {
+    accent-color: #048ba8;
+  }
+
+  #dip {
+    accent-color: #0db39e;
+  }
+
+  #ela {
+    accent-color: #16db93;
+  }
+
+  #holo {
+    accent-color: #83e377;
+  }
+
+  #mam {
+    accent-color: #b9e769;
+  }
+
+  #myx {
+    accent-color: #efea5a;
+  }
+
+  #pet {
+    accent-color: #f1c453;
+  }
+
+  #rep {
+    accent-color: #f29e4c;
+  }
