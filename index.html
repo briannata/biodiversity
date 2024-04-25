@@ -65,6 +65,34 @@
     var svg = d3.select("svg"),
         width = +svg.attr("width"),
         height = +svg.attr("height");
+
+    d3.json("world.geojson", function(d) {
+      return d
+    }).then(function(dataGeo) {
+      // Draw the map
+      svg.append("g")
+          .selectAll("path")
+          .data(dataGeo.features)
+          .enter()
+          .append("path")
+            .attr("fill", "#b8b8b8")
+            .attr("d", d3.geoPath()
+                .projection(projection)
+            )
+          .style("stroke", "none")
+          .style("opacity", .3)
+    })
+
+    // Add title and explanation
+    svg
+        .append("text")
+          .attr("text-anchor", "end")
+          .style("fill", "black")
+          .attr("x", width - 10)
+          .attr("y", height - 30)
+          .attr("width", 90)
+          .html("ANIMAL POPULATIONS OVER TIME")
+          .style("font-size", 14)
     
     // Map and projection
     var projection = d3.geoMercator()
@@ -73,9 +101,7 @@
         .translate([ width/2, height/2 ])
     
     function showData() {
-      d3.json("world.geojson", function(d) {
-      return d
-    }).then(function(dataGeo) {
+      
       d3.csv("LPD2022_public.csv", function(d) {
         return {
           class: d["Class"],
@@ -91,27 +117,12 @@
       const color = d3.scaleOrdinal()
                 .domain(allClasses)
                 .range(["#54478c","#2c699a","#048ba8","#0db39e","#16db93","#83e377","#b9e769","#efea5a","#f1c453","#f29e4c"])
-                //.range(["#f94144","#f3722c","#f8961e","#f9844a","#f9c74f","#90be6d","#43aa8b","#4d908e","#577590","#277da1"])
-                //.range(d3.schemeSet3)
     
       // Add a scale for bubble size
       var valueExtent = d3.extent(data, function(d) { return +d.n; })
       var size = d3.scaleSqrt()
         .domain(valueExtent)  // What's in the data
         .range([1, 50])  // Size in pixel
-    
-      // Draw the map
-      svg.append("g")
-          .selectAll("path")
-          .data(dataGeo.features)
-          .enter()
-          .append("path")
-            .attr("fill", "#b8b8b8")
-            .attr("d", d3.geoPath()
-                .projection(projection)
-            )
-          .style("stroke", "none")
-          .style("opacity", .3)
     
       // Add circles:
       svg
@@ -129,45 +140,32 @@
           .attr("stroke-width", 1)
           .attr("fill-opacity", .4)
           .attr("class" , function(d){ return d.class})
-    
-      // Add title and explanation
-      svg
-        .append("text")
-          .attr("text-anchor", "end")
-          .style("fill", "black")
-          .attr("x", width - 10)
-          .attr("y", height - 30)
-          .attr("width", 90)
-          .html("ANIMAL POPULATIONS OVER TIME")
-          .style("font-size", 14)
+    })}
 
-      // This function is gonna change the opacity and size of selected and unselected circles
-    function update(){
+     // This function is gonna change the opacity and size of selected and unselected circles
+     function update(){
 
-    // For each check box:
-    d3.selectAll(".checkbox").each(function(d){
-      cb = d3.select(this);
-      grp = cb.property("value")
+  // For each check box:
+  d3.selectAll(".checkbox").each(function(d){
+    cb = d3.select(this);
+    grp = cb.property("value")
 
-      // If the box is check, I show the group
-      if(cb.property("checked")){
-        svg.selectAll("."+grp).transition().duration(1000).style("opacity", 1)//.attr("r", function(d){ return size(+d.n) })
+    // If the box is check, I show the group
+    if(cb.property("checked")){
+      svg.selectAll("."+grp).transition().duration(1000).style("opacity", 1)//.attr("r", function(d){ return size(+d.n) })
 
-      // Otherwise I hide it
-      }else{
-        svg.selectAll("."+grp).transition().duration(1000).style("opacity", 0)//.attr("r", 0)
-      }
-    })
+    // Otherwise I hide it
+    }else{
+      svg.selectAll("."+grp).transition().duration(1000).style("opacity", 0)//.attr("r", 0)
     }
+  })
+  }
 
-    // When a button change, I run the update function
-    d3.selectAll(".checkbox").on("change",update);
+  // When a button change, I run the update function
+  d3.selectAll(".checkbox").on("change",update);
 
-    // And I initialize it at the beginning
-    update()
-
-    })})
-    }
+  // And I initialize it at the beginning
+  update()
 
     showData();
     
