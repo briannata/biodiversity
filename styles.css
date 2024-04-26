@@ -1,13 +1,13 @@
 body {
     font-family: "Roboto", sans-serif;
   }
-  #graph5.vega-embed {
+  vega-embed {
     width: 100%;
     display: flex;
   }
 
-  #graph5.vega-embed details,
-  #graph5.vega-embed details summary {
+  vega-embed details,
+  vega-embed details summary {
     position: relative;
   }
 

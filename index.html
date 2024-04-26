@@ -4,18 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
   <title>Biodiversity Viz</title>
+
   <!-- Load d3.js and the geo projection plugin -->
   <script src="https://d3js.org/d3.v6.js"></script>
   <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
   <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+
   <!-- Google font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Vega Embed -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
 </head>
 <body>
   <h1>Biodiversity Visualizations Dashboard</h1>
@@ -47,16 +54,22 @@
       showData();
     })
 
-    // The svg
-    var svg = d3.select("#viz1"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height");
+    // The svg for visualization 1
+    var svg1 = d3.select("#viz1"),
+        width = +svg1.attr("width"),
+        height = +svg1.attr("height");
+
+
+    // The svg for visualization 2
+    var svg2 = d3.select('#viz2'),
+      width = +svg2.attr("width"),
+      height = +svg2.attr("height");
 
     d3.json("world.geojson", function(d) {
       return d
     }).then(function(dataGeo) {
       // Draw the map
-      svg.append("g")
+      svg1.append("g")
           .selectAll("path")
           .data(dataGeo.features)
           .enter()
@@ -70,8 +83,7 @@
     })
 
     // Add title and explanation
-    svg
-        .append("text")
+    svg1.append("text")
           .attr("text-anchor", "end")
           .style("fill", "black")
           .attr("x", width - 10)
@@ -118,10 +130,9 @@
         .attr("class", "tooltip")
         .style("opacity", 0)
 
-      svg.selectAll("circle").remove();
+      svg1.selectAll("circle").remove();
       // Add circles:
-      svg
-        .selectAll("myCircles")
+      svg1.selectAll("myCircles")
         .data(data.sort(function(a,b) { return +b.n - +a.n }).filter(function(d,i){ return i<1000 }))
         .enter()
         .append("circle")
@@ -159,7 +170,7 @@
         .exit()
     })}
 
-  // This function is gonna change the opacity and size of selected and unselected circles
+  // This function is gonna change the opacity of selected and unselected circles
   function update(){
 
   // For each check box:
@@ -169,11 +180,11 @@
 
     // If the box is check, I show the group
     if(cb.property("checked")){
-      svg.selectAll("."+grp).transition().duration(1000).style("opacity", 1)//.attr("r", function(d){ return size(+d.n) })
+      svg1.selectAll("."+grp).transition().duration(1000).style("opacity", 1)
 
     // Otherwise I hide it
     }else{
-      svg.selectAll("."+grp).transition().duration(1000).style("opacity", 0)//.attr("r", 0)
+      svg1.selectAll("."+grp).transition().duration(1000).style("opacity", 0)
     }
   })
   }
@@ -193,23 +204,7 @@
     <div class='tableauPlaceholder' id='viz1714098313307' style='position: relative'><noscript><a href='#'><img alt='Dashboard 1 ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ho&#47;HowWildlifePopulationsareChanging_17140607921500&#47;Dashboard1&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz'  style='display:none;'><param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' /> <param name='embed_code_version' value='3' /> <param name='site_root' value='' /><param name='name' value='HowWildlifePopulationsareChanging_17140607921500&#47;Dashboard1' /><param name='tabs' value='no' /><param name='toolbar' value='yes' /><param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ho&#47;HowWildlifePopulationsareChanging_17140607921500&#47;Dashboard1&#47;1.png' /> <param name='animate_transition' value='yes' /><param name='display_static_image' value='yes' /><param name='display_spinner' value='yes' /><param name='display_overlay' value='yes' /><param name='display_count' value='yes' /><param name='language' value='en-US' /></object></div>                <script type='text/javascript'>                    var divElement = document.getElementById('viz1714098313307');                    var vizElement = divElement.getElementsByTagName('object')[0];                    if ( divElement.offsetWidth > 800 ) { vizElement.style.width='1000px';vizElement.style.height='827px';} else if ( divElement.offsetWidth > 500 ) { vizElement.style.width='1000px';vizElement.style.height='827px';} else { vizElement.style.width='100%';vizElement.style.height='727px';}                     var scriptElement = document.createElement('script');                    scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';                    vizElement.parentNode.insertBefore(scriptElement, vizElement);                </script>
 <br><br><br>
 
-<head>
-<style>
-    #vis1.vega-embed {
-      width: 100%;
-      display: flex;
-    }
 
-    #vis1.vega-embed details,
-    #vis1.vega-embed details summary {
-      position: relative;
-    }
-  </style>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-</head>
-<body>
   <div id="vis1"></div>
   <script>
     (function(vegaEmbed) {
@@ -230,25 +225,9 @@
     })(vegaEmbed);
 
   </script>
-</body>
+  
 <br><br><br>
-<head>
-  <style>
-    #vis2.vega-embed {
-      width: 100%;
-      display: flex;
-    }
 
-    #vis2.vega-embed details,
-    #vis2.vega-embed details summary {
-      position: relative;
-    }
-  </style>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-lite@5.16.3"></script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-</head>
-<body>
   <div id="vis2"></div>
   <script>
     (function(vegaEmbed) {
@@ -269,7 +248,6 @@
     })(vegaEmbed);
 
   </script>
-</body>
 
 <br><br><br>
 
