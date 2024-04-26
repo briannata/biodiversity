@@ -35,8 +35,8 @@
     <input type="checkbox" id="pet" class="checkbox" value="Petromyzonti" checked><label>Petromyzonti</label>
     <input type="checkbox" id="rep" class="checkbox" value="Repitalia" checked><label>Repitalia</label>
   </div>
-  <svg id="worldmap" width="630" height="350"></svg>
-  <svg id="graph2" width="630" height="350"></svg>
+  <svg id="viz1" width="630" height="350"></svg>
+  <svg id="viz2" width="630" height="350"></svg>
   <script>
     // This is the default value
     var selectedColumn = "1950";
@@ -48,7 +48,7 @@
     })
 
     // The svg
-    var svg = d3.select("svg"),
+    var svg = d3.select("#viz1"),
         width = +svg.attr("width"),
         height = +svg.attr("height");
 
@@ -85,7 +85,7 @@
         .center([0,20])                // GPS of location to zoom on
         .scale(99)                       // This is like the zoom
         .translate([ width/2, height/2 ])
-    
+
     function showData() {
       
       d3.csv("LPD2022_public.csv", function(d) {
@@ -97,7 +97,6 @@
           n: +d[selectedColumn]
       }
     }).then(function(data) {
-      console.log(data);
       // Create a color scale
       var allClasses = ['Actinopteri', 'Amphibia', 'Aves', 'Dipneusti', 'Elasmobranchii', 'Holocephali', 'Mammalia', 'Myxini', 'Petromyzonti', 'Repitalia']
       const color = d3.scaleOrdinal()
@@ -109,7 +108,15 @@
       var size = d3.scaleSqrt()
         .domain(valueExtent)  // What's in the data
         .range([1, 50])  // Size in pixel
-    
+
+        // var tooltip = d3.select("#viz1")
+        //             .append("div")
+        //             .style("position", "absolute")
+        //             .style("visibility", "hidden")
+
+        var tip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0)
 
       svg.selectAll("circle").remove();
       // Add circles:
@@ -124,10 +131,31 @@
           .style("fill", function(d) {
                 return color(d.class)
             })
-          .attr("stroke", function(d){ if(d.n>1000000){return "black"}else{return "none"}  })
           .attr("stroke-width", 1)
           .attr("fill-opacity", .4)
           .attr("class" , function(d){ return d.class})
+          .on("mouseover", function(d) {
+            tip.style("opacity", 1)
+              .html("Class: " + d.class + "<br/> Number: " + d.n)
+              .style("left", "50px")
+              .style("top", "50px")
+            })
+            .on("mouseout", function(d) {
+              tip.style("opacity", 0)
+            })
+          // .on("mouseover", function(e, d) { 
+          //       return tooltip.style("visibility", "visible")   
+          //                       .html("Class: " + d.class)  
+          //   })
+          //   .on("mousemove", function(e, d) {
+          //       return tooltip.style("top", d3.select(this)     
+          //                                     .attr("cy")+"px") 
+          //                     .style("left", d3.select(this)    
+          //                                      .attr("cx")+"px")                                             
+          //   })
+          //   .on("mouseout", function(e, d) { 
+          //       return tooltip.style("visibility", "hidden")                                    
+          //   })
         .exit()
     })}
 
@@ -160,7 +188,7 @@
     
     </script>
 
-<div id="graph5"></div>
+<div id="viz5"></div>
 <script>
 
     
@@ -176,8 +204,8 @@
                       + '</div>');
       throw error;
   }
-  const el = document.getElementById('graph5');
-  vegaEmbed("#graph5", spec, embedOpt)
+  const el = document.getElementById('viz5');
+  vegaEmbed("#viz5", spec, embedOpt)
     .catch(error => showError(el, error));
 })(vegaEmbed);
 
