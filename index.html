@@ -47,16 +47,22 @@
       showData();
     })
 
-    // The svg
-    var svg = d3.select("#viz1"),
-        width = +svg.attr("width"),
-        height = +svg.attr("height");
+    // The svg for visualization 1
+    var svg1 = d3.select("#viz1"),
+        width = +svg1.attr("width"),
+        height = +svg1.attr("height");
+
+
+    // The svg for visualization 2
+    var svg2 = d3.select('#viz2'),
+      width = +svg2.attr("width"),
+      height = +svg2.attr("height");
 
     d3.json("world.geojson", function(d) {
       return d
     }).then(function(dataGeo) {
       // Draw the map
-      svg.append("g")
+      svg1.append("g")
           .selectAll("path")
           .data(dataGeo.features)
           .enter()
@@ -70,7 +76,7 @@
     })
 
     // Add title and explanation
-    svg
+    svg1
         .append("text")
           .attr("text-anchor", "end")
           .style("fill", "black")
@@ -118,9 +124,9 @@
         .attr("class", "tooltip")
         .style("opacity", 0)
 
-      svg.selectAll("circle").remove();
+      svg1.selectAll("circle").remove();
       // Add circles:
-      svg
+      svg1
         .selectAll("myCircles")
         .data(data.sort(function(a,b) { return +b.n - +a.n }).filter(function(d,i){ return i<1000 }))
         .enter()
@@ -169,11 +175,11 @@
 
     // If the box is check, I show the group
     if(cb.property("checked")){
-      svg.selectAll("."+grp).transition().duration(1000).style("opacity", 1)//.attr("r", function(d){ return size(+d.n) })
+      svg1.selectAll("."+grp).transition().duration(1000).style("opacity", 1)//.attr("r", function(d){ return size(+d.n) })
 
     // Otherwise I hide it
     }else{
-      svg.selectAll("."+grp).transition().duration(1000).style("opacity", 0)//.attr("r", 0)
+      svg1.selectAll("."+grp).transition().duration(1000).style("opacity", 0)//.attr("r", 0)
     }
   })
   }
