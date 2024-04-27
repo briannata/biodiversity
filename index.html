@@ -245,7 +245,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
   </head>
   <body>
-    <div id="vis7"></div>
+    <div id="vis6"></div>
     <script>
       (function(vegaEmbed) {
         var spec = {
@@ -256,7 +256,8 @@
               "encoding": {
                 "color": {"field": "category", "type": "nominal"},
                 "theta": {"field": "value", "stack": true, "type": "quantitative"}
-              }
+              },
+              "title": "Number of Species Organized by Class"
             },
             {
               "mark": {"type": "text", "radius": 140, "size": 20},
@@ -264,7 +265,8 @@
                 "color": {"field": "category", "type": "nominal"},
                 "text": {"field": "value", "type": "quantitative"},
                 "theta": {"field": "value", "stack": true, "type": "quantitative"}
-              }
+              },
+              "title": "Number of Species Organized by Class"
             }
           ],
           "data": {"name": "data-87a29675e34425026809153e387e3249"},
@@ -289,8 +291,8 @@
                             + '</div>');
             throw error;
         }
-        const el = document.getElementById('vis7');
-        vegaEmbed("#vis7", spec, embedOpt)
+        const el = document.getElementById('vis6');
+        vegaEmbed("#vis6", spec, embedOpt)
           .catch(error => showError(el, error));
       })(vegaEmbed);
   
