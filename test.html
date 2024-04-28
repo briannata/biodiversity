@@ -1,0 +1,146 @@
+
+<!--This example walks through how to change your bubble chart into a bar chart. 
+The tutorial follows directly on the add_a_tooltip.html tutorial.
+Key elements of this walkthrough are: 
+- Changing the x axis to a bandscale (line 45)
+- Changing the circles to bars (line 93)
+
+The modifications from the base code will be indicated using 
+//%%%%%%%%%%%%%%%%%%%%%%
+to make them easier to find. 
+
+When you generate the chart, you'll notice the bars are quite crammed together. What might 
+you change to fix that design issue? 
+-->
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!--Load d3js. Version number matters here!-->
+<script src="https://d3js.org/d3.v6.js"></script>
+
+<!--Create a div where the graph will appear.-->
+<div id="chart"></div>
+
+<script>
+const margin = {top: 10, right: 30, bottom: 30, left:60}
+const width = 460 - margin.left - margin.right
+const height = 400 - margin.top - margin.bottom
+
+// Append the SVG to the body of the page
+const svg = d3.select("#chart")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left}, ${margin.top})`)
+
+d3.csv("LPD2022_public.csv", function(d) {
+    return {
+        class: d["Class"],
+        common_name: d["Common_name"],
+        latitude: +d["Latitude"],
+        longitude: +d["Longitude"],
+        n: +d[selectedColumn]
+    }
+}).then(function(data) {
+    console.log(data)
+    
+//%%%%%%%%%%%%%%%%%%%%%%
+    // Adding an x-scale
+    //const x = d3.scaleLinear()
+    //            .domain([0, d3.max(data, d=> d.health)])
+    //            .range([0, width])
+    
+    // 1. Our x-axis now uses categorical data. To set up bars
+    // at uniform intervals, we'll go ahead and use a band scale. 
+    // Band scales will divide space into uniform bands and allow
+    // for a little bit of padding (i.e., blank space) between bands. 
+    // Like with ordinal scales, we'll pass it the list of possible 
+    // values as the data domain. Unlike ordinal scales, we'll pass 
+    // it a pixel range as the range. 
+    const x = d3.scaleBand()
+                .domain(data.map(d=>d.class))
+                .range([0, width])
+                .padding(0.2)
+//%%%%%%%%%%%%%%%%%%%%%%
+    
+    const y = d3.scaleLinear()
+                .domain([0, d3.max(data, d=> d.n)])
+                .range([height, 0])
+    
+    const color = d3.scaleOrdinal()
+                    .domain(data.map(d=>d.class))
+                    .range(d3.schemeSet3)
+    
+    svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x))
+    
+    svg.append("g")
+        .call(d3.axisLeft(y))
+    
+
+    var tooltip = d3.select("#chart")
+                    .append("div")
+                    .style("position", "absolute")
+                    .style("visibility", "hidden")
+    
+    // Add in our marks
+    svg.append("g")
+        .selectAll("dot")
+        .data(data)
+//%%%%%%%%%%%%%%%%%%%%%%
+        // 2. We'll update our circles to use rect objects instead (short for
+        // rectangles). These objects need an x, y, width, and height.
+        //.join("circle")
+        .join("rect")
+            //.attr("cx", function(d) {
+            //    return x(d.health);
+            //})
+            .attr("x", function(d){     // Update the x value to use country
+                return x(d.class)     // instead of health
+            })
+            //.attr("cy", function(d) {
+            //    return y(d.happiness_score)
+            //})
+            .attr("y", d => y(d.n)) // Same general mapping for the y-position
+                                                  // just using a different function structure
+                                                  // (and "y" as rects do not have a cy)
+            //.attr("r", 3)
+            //.attr("r", function(d) {return size(d.generosity)})   //Change from a radius to a 
+            .attr("width", x.bandwidth)                             // width and height. The bandwidth
+            .attr("height", function(d){                            // is the bar width computed using 
+                                                                    // the band scale.
+                return height - y(d.n)                // Recall that the origin is in the 
+                                                                    // upper left (hence height - y). Take
+            })                                                      // a look at the graph without "height 
+                                                                    // -" to see what changes. 
+            //.style("fill", "blue")
+            .style("fill", function(d) {return color(d.class)})
+            .on("mouseover", function(e, d) {   
+                return tooltip.style("visibility", "visible")   
+                                .html("Class: " + d.class)  
+            })
+            .on("mousemove", function(e, d) {
+                return tooltip.style("top", d3.select(this)     
+                                              .attr("cy")+"px") 
+                              .style("left", d3.select(this)    
+                                               .attr("cx")+"px")
+                                                                
+            })
+            .on("mouseout", function(e, d) { 
+                return tooltip.style("visibility", "hidden")    
+                                                                
+            })
+})
+</script>
+
+
+
+
+
+
+
+
+

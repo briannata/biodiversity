@@ -43,7 +43,6 @@
     <input type="checkbox" id="rep" class="checkbox" value="Repitalia" checked><label>Repitalia</label>
   </div>
   <svg id="viz1" width="630" height="350"></svg>
-  <svg id="viz2" width="630" height="350"></svg>
   <script>
     // This is the default value
     var selectedColumn = "1950";
@@ -58,11 +57,6 @@
     var svg1 = d3.select("#viz1"),
         width = +svg1.attr("width"),
         height = +svg1.attr("height");
-
-    // The svg for visualization 2
-    var svg2 = d3.select('#viz2'),
-      width = +svg2.attr("width"),
-      height = +svg2.attr("height");
 
     d3.json("world.geojson", function(d) {
       return d
@@ -167,27 +161,6 @@
           //       return tooltip.style("visibility", "hidden")                                    
           //   })
         .exit()
-
-      
-        // Add Y axis
-        var y = d3.scaleLinear()
-          .domain([0, 13000])
-          .range([ height, 0]);
-        svg2.append("g")
-          .call(d3.axisLeft(y));
-
-        // Bars
-        svg2.selectAll("mybar")
-          .data(data.sort(function(a,b) { return +b.n - +a.n }))
-          .enter()
-          .append("rect")
-            .attr("x", function(d) { return x(d.class); })
-            .attr("y", function(d) { return y(d.data); })
-            .attr("width", x.bandwidth())
-            .attr("height", function(d) { return height - y(d.data); })
-            .attr("fill", "#69b3a2")
-          
-          })}
 
   // This function is gonna change the opacity of selected and unselected circles
   function update(){
