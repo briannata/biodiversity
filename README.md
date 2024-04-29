@@ -14,7 +14,7 @@ This visualization was also developed in Tableau and portrays how wildlife popul
 
 ## Visualization 4: Explore Living Planet Index Over Time and By Region
 
-This visualization was developed in Tableau. It depicts the Living Population Index (LPI), a percentage, through line graphs for the world and for different regions. For the World LPI graph, the middle line is the LPI, while the lines below and above show the lower and upper confidence intervals, respectively. For the LPI by Region graph, there are separate lines for comparison of the world and different regions: freshwater, Africa, Asian and Pacific, Europe and Central Asia, Latin America and the Caribbean, and North America.
+This visualization was developed in Tableau. It depicts the Living Planet Index (LPI), a percentage, through line graphs for the world and for different regions on different tabs. For the World LPI graph, the middle line is the LPI from 1970 to 2018, while the lines below and above show the lower and upper confidence intervals, respectively. For the LPI by Region graph, there are separate lines for comparison of the world and different regions over time: freshwater, Africa, Asian and Pacific, Europe and Central Asia, Latin America and the Caribbean, and North America.
 
 ## Visualization 5: Explore Number of Species Organized by Class in the Living Planet Database
 
