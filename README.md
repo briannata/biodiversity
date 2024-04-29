@@ -12,6 +12,14 @@ This visualization was developed in Tableau and depicts wildlife populations on 
 
 This visualization was also developed in Tableau and portrays how wildlife populations are changing over time, using multiple horizontal bar charts. There are distinct bar charts for each Taxonomic group, and each bar chart is divided into increasing, stable, and decreasing populations. Each division in the bar chart (increasing, stable, or decreasing) is delineated by a unique color.
 
+## Visualization 4: Explore Living Planet Index Over Time and By Region
+
+This visualization was developed in Tableau. It depicts the Living Population Index (LPI), a percentage, through line graphs for the world and for different regions. For the World LPI graph, the middle line is the LPI, while the lines below and above show the lower and upper confidence intervals, respectively. For the LPI by Region graph, there are separate lines for comparison of the world and different regions: freshwater, Africa, Asian and Pacific, Europe and Central Asia, Latin America and the Caribbean, and North America.
+
+## Visualization 5: Explore Number of Species Organized by Class in the Living Planet Database
+
+This visualization was developed using Altair. The pie chart separates all the different species in the Living Planet Database (LPD) by the five different animal classes: amphibians, birds, fish, mammals, and reptiles.
+
 ## Visualization 6: Explore Increase in Numbers of Animal Populations Over Time
 
 This visualization was developed in Altair and depicts the 20 animals in the world with the greatest increase in population. This is portrayed using horizontal bar charts, where each bar chart represents a Common Name of animals in the data. The bar charts are ordered from descending percent of average relative change in size of populations, and an Altair color scheme is used to depict the magnitude in change. Moreover, a logarithmic scale and tooltip are implemented to make viewing easier for the reader.
