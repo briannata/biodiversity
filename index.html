@@ -145,11 +145,11 @@
 
     // If the box is check, I show the group
     if(cb.property("checked")){
-      svg.selectAll("."+grp).transition().duration(1000).style("fill-opacity", 1)//.attr("r", function(d){ return size(+d.n) })
+      svg.selectAll("."+grp).transition().duration(1000).style("fill-opacity", .4)
 
     // Otherwise I hide it
     }else{
-      svg.selectAll("."+grp).transition().duration(1000).style("fill-opacity", 0)//.attr("r", 0)
+      svg.selectAll("."+grp).transition().duration(1000).style("fill-opacity", 0)
     }
   })
   }
