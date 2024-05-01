@@ -1,5 +1,7 @@
 # World Biodiversity Visualization Dashboard
 
+Authors: Annie Vo, Brianna Ta, and Kelly Fan
+
 ## Visualization 1: Explore Animal Populations Over Time
 
 This visualization was developed in D3 and displays animal populations on a world map. There is a slider where you can explore the distributions of animal populations over the years from 1950 to 2020. There is also an option to filter by animal class so you can better investigate the distributions of specific animal groups (especially since the fish populations dominate the overall visualization).
